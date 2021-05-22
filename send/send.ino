@@ -1,15 +1,18 @@
-// hardware
+// fixed hardware
 #define SerialHw Serial1
 #define LED 11
+
+// configurable hardware
+#define DATACLK 5
 #define DATA1 0
 #define DATA2 1
-#define DATA3 3
-#define DATACLK 5
+#define DATA3 2
 
 // common data
 #define BITS (24*3)
 volatile byte response[BITS];
-int delayTime = 100;
+int delayTime = 10;
+char show_debug = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -39,17 +42,16 @@ void capture() {
   response[responseIndex++] = digitalRead(DATA3);
 }
 
-int communicate(String data, int received){
+int communicate(String data, int waitfor){
   responseIndex = 3; // 3 because of the falling fix
   for(int i = 0; i < data.length(); i+=2){
     SerialHw.write(str2b(data[i],data[i+1]));
   }
-  if(received == 1) received = 3+1; // because of the falling fix
-  while(responseIndex < received);
-  if(received==-1){
-    delay(1000);
-  }
-  return responseIndex-3;
+  if(waitfor == 1) waitfor = 3+1; // because of the falling fix
+
+  int counter = 10000;
+  while((waitfor < 0 || responseIndex < waitfor) && counter > 0) counter--;
+  return responseIndex - 3; // because of the falling fix
 }
 
 // ---------- main ----------
@@ -58,11 +60,11 @@ void loop() {
   digitalWrite(LED, LOW);
 
   
-  //mainCommand();
+  mainCommand();
   //secondaryCommand();
   
-  
-  //debug();
+
+  if(show_debug) debug();
 
   commands();
 
@@ -134,7 +136,7 @@ void forceClear(){
 }
 
 void anyCommand(String command){
-  Serial.printf("sent: %s\n",command);
+  Serial.printf("sent: %s\n",command.c_str());
   int received = communicate(command,-1);
   Serial.printf("received: %i\n",received);
   debug();
@@ -169,15 +171,15 @@ void commands(){
     char c = Serial.read();
     switch(c){
       case '+':
-        delayTime += 100;
+        delayTime += 10;
         break;
       case '-':
-        if(delayTime>=100) delayTime -= 100;
+        if(delayTime>=100) delayTime -= 10;
         break;
+      case '?':
+        show_debug = !show_debug;
       case '\n':
-        //if(command.length()>0) forceCommand(command);
-        //else forceClear();
-        anyCommand(command);
+        if(command.length()>0) anyCommand(command);
         command = "";
         break;
         
