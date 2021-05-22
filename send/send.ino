@@ -12,7 +12,8 @@
 #define BITS (24*3)
 volatile byte response[BITS];
 int delayTime = 10;
-char show_debug = 0;
+
+// ---------- setup ----------
 
 void setup() {
   Serial.begin(9600);
@@ -36,10 +37,10 @@ volatile byte responseIndex = 0;
 void capture() {
   if(responseIndex>=BITS) return; // avoid spureous
   
-  //byte data = PINB;
-  response[responseIndex++] = digitalRead(DATA1);
-  response[responseIndex++] = digitalRead(DATA2);
-  response[responseIndex++] = digitalRead(DATA3);
+  byte data = PINB;
+  response[responseIndex++] = (data>>DATA1) & 1;//digitalRead(DATA1);
+  response[responseIndex++] = (data>>DATA2) & 1;//digitalRead(DATA2);
+  response[responseIndex++] = (data>>DATA3) & 1;//digitalRead(DATA3);
 }
 
 int communicate(String data, int waitfor){
@@ -64,7 +65,9 @@ void loop() {
   //secondaryCommand();
   
 
-  if(show_debug) debug();
+  feedback();
+  debug();
+
 
   commands();
 
@@ -142,11 +145,67 @@ void anyCommand(String command){
   debug();
 }
 
+// ---------- test feedback ----------
+
+byte enable_feedback = 0;
+byte active_effects[15] = {0};
+char dataString[30] = {0};
+
+char* effectString[14] = {
+  "A50882%02XF4FFFF057E007E000000",
+  "A50884%02X542C2C056500005A0096",
+  "A50882%02X5490900A7E0006960096",
+  "A50888%02XF1FFFF0065657E7E0000",
+  "A50887%02XF1FFFF007E7E7E7E0900",
+  "A50880%02X0464640A65007E086500",
+  "A50880%02XFCFFFF0A7E0000000000",
+  "A50880%02XF4FFFF0A7E0000000000",
+  "A5088A%02XF1FFFF007E197E7E0000",
+  "A50888%02XF1FFFF007F7F4B4B0900",
+  "A50885%02X54F4F40C65CE00000000",
+  "A50888%02XF1FFFF007F7F7E7E0000",
+  "A50884%02XF4E8E8027E0000000000",
+  "A50882%02X542C2C117E007E00005E"
+};
+char* enableString = "A50A00%02X0100";
+char* cancelString = "A509%02X";
+
+void feedback(){
+  if(!enable_feedback) return;
+  
+  for(int i=0;i<14;++i){
+    if(active_effects[i] != response[27+i]){
+      // changed effect
+      if(response[27+i]){
+        // enable
+        sprintf(dataString,effectString[i],i+1);
+        communicate(dataString,1);
+        Serial.printf("Activated: %s\n",dataString);
+        sprintf(dataString,enableString,i+1);
+        communicate(dataString,1);
+      }else{
+        // disable
+        sprintf(dataString,cancelString,i+1);
+        communicate(dataString,1);
+        Serial.printf("Deactivated: %s\n",dataString);
+      }
+      active_effects[i] = response[27+i];
+    }
+  }
+  if(response[25]){
+    // master reset
+    communicate("A502",1);
+  }
+}
+
 // ---------- debug ----------
 
+byte enable_debug = 0;
 byte prevResponse[BITS];
 
 void debug(){
+  if(!enable_debug) return;
+  
   for(int i=0;i<BITS;++i){
     if(response[i] != prevResponse[i]){
       Serial.printf("%2i: %s\n",i,response[i]?"0->1":"1->0");
@@ -174,10 +233,14 @@ void commands(){
         delayTime += 10;
         break;
       case '-':
-        if(delayTime>=100) delayTime -= 10;
+        if(delayTime>=10) delayTime -= 10;
         break;
       case '?':
-        show_debug = !show_debug;
+        enable_debug = !enable_debug;
+        break;
+      case '*':
+        enable_feedback = !enable_feedback;
+        break;
       case '\n':
         if(command.length()>0) anyCommand(command);
         command = "";
