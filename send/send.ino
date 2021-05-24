@@ -28,6 +28,8 @@ void setup() {
   pinMode(DATA3, INPUT);
   pinMode(DATACLK, INPUT);
   attachInterrupt(digitalPinToInterrupt(DATACLK), capture, FALLING); // should be rising, but doesn't work reliably
+
+  Serial.println("Teensy ready. Send 'h' to get a list of commands.");
 }
 
 // ---------- capturing ----------
@@ -38,9 +40,9 @@ void capture() {
   if(responseIndex>=BITS) return; // avoid spureous
   
   byte data = PINB;
-  response[responseIndex++] = (data>>DATA1) & 1;//digitalRead(DATA1);
-  response[responseIndex++] = (data>>DATA2) & 1;//digitalRead(DATA2);
-  response[responseIndex++] = (data>>DATA3) & 1;//digitalRead(DATA3);
+  response[responseIndex++] = (data>>DATA1) & 1; //digitalRead(DATA1);
+  response[responseIndex++] = (data>>DATA2) & 1; //digitalRead(DATA2);
+  response[responseIndex++] = (data>>DATA3) & 1; //digitalRead(DATA3);
 }
 
 int communicate(String data, int waitfor){
@@ -48,11 +50,11 @@ int communicate(String data, int waitfor){
   for(int i = 0; i < data.length(); i+=2){
     SerialHw.write(str2b(data[i],data[i+1]));
   }
-  if(waitfor == 1) waitfor = 3+1; // because of the falling fix
+  if(waitfor == 1) waitfor = 1+3; // +3 because of the falling fix
 
   int counter = 10000;
   while((waitfor < 0 || responseIndex < waitfor) && counter > 0) counter--;
-  return responseIndex - 3; // because of the falling fix
+  return responseIndex - 3; // -3 because of the falling fix
 }
 
 // ---------- main ----------
@@ -79,13 +81,35 @@ void loop() {
 
 // ---------- commands ----------
 
+// button assignment
+#define BUTTONS 17
+byte assign[BUTTONS] = {
+  33, // button A
+  34, // button B
+  36, // button C
+  37, // button D
+  27, // button E
+  28, // button F
+  30, // button G
+  31, // button H
+  38, // trigger left
+  35, // trigger right
+  29, // pad left
+  40, // pad down
+  32, // pad right
+  39, // pad up
+  25, // button O
+  26, // button Set
+  24, // button Force on/off
+};
+
 void mainCommand(){
   
   communicate("a50d",24*3);
 
   // buttons
-  for(int i=0;i<17;++i){
-    Joystick.button(i + 1, response[24+i]);
+  for(int i=0;i<BUTTONS;++i){
+    Joystick.button(i + 1, response[assign[i]]);
   }
 
   // wheel
@@ -124,7 +148,9 @@ void secondaryCommand(){
 
   communicate("a503",24);
 
-  // TODO: detect power here
+  // TODO: do something with this
+  // byte force = response[13];
+  // byte power = response[16];
   
 }
 
@@ -142,7 +168,7 @@ void anyCommand(String command){
   Serial.printf("sent: %s\n",command.c_str());
   int received = communicate(command,-1);
   Serial.printf("received: %i\n",received);
-  debug();
+  if(received>0) printReceived(received+3); // +3 because of the falling fix
 }
 
 // ---------- test feedback ----------
@@ -212,8 +238,12 @@ void debug(){
       prevResponse[i]=response[i];
     }
   }
+  printReceived(BITS);
+}
+
+void printReceived(int amount){
   for(int r=0;r<3;++r){
-    for(int c=r;c<BITS;c+=3){
+    for(int c=r;c<amount;c+=3){
       Serial.printf("%02i=%i ",c, response[c]);
     }
     Serial.println();
@@ -229,6 +259,13 @@ void commands(){
   while(Serial.available() > 0){
     char c = Serial.read();
     switch(c){
+      case 'h':
+        Serial.println("'+' to increase polling time (slower)");
+        Serial.println("'-' to decrease polling time (faster)");
+        Serial.println("'?' to toggle debug mode");
+        Serial.println("'*' to toggle feedback test mode");
+        Serial.println("any hex-string and then enter to send that message via uart");
+        break;
       case '+':
         delayTime += 10;
         break;
@@ -237,18 +274,21 @@ void commands(){
         break;
       case '?':
         enable_debug = !enable_debug;
+        Serial.printf("Debug mode: %s\n", enable_debug?"ON":"OFF");
         break;
       case '*':
         enable_feedback = !enable_feedback;
+        Serial.printf("Feedback test mode: %s\n", enable_feedback?"ON":"OFF");
         break;
       case '\n':
         if(command.length()>0) anyCommand(command);
         command = "";
         break;
-        
-      default:
-        command += c;
     }
+
+    if('0' <= c && c <= '9') command += c;
+    if('a' <= c && c <= 'f') command += c;
+    if('A' <= c && c <= 'F') command += c;
   }
 }
 
