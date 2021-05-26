@@ -1,0 +1,142 @@
+1: 5v
+2: patron
+3: 0
+4: gnd
+6: 0
+7: patron
+8: 5v
+9: 5v
+10: patron
+11: 0
+12: patron
+13: 0
+14: patron
+15: 1º
+
+31250 baudios
+
+
+A5 0D - A5 0D - A5 03 - A5 0D - . A5 0D - ... A5 0D - 
+
+
+40001065000004301111117
+
+A: 1043
+B: 2043
+C: 0143
+D: 2043
+
+
+
+bits: (b1,b2,b4)
+
+---------- A5 0D ----------
+00=0
+01=0
+02=1
+03=0
+04=0
+05=0
+06=0
+07=0
+08=0
+09=0
+10=0
+11=0
+12=1
+13=0
+14=0
+15=0
+16=0
+17=0
+18=0
+19=1
+20=1
+21=1
+22=0
+23=1
+24=0 - button Force on/off
+25=0 - button O
+26=0 - button Set
+27=0 - button E
+28=0 - button F
+29=0 - pad left
+30=0 - button G
+31=0 - button H
+32=0 - pad right
+33=0 - button A
+34=0 - button B
+35=0 - trigger right
+36=0 - button C
+37=0 - button D
+38=0 - trigger left
+39=0 - pad up
+40=0 - pad down
+41=1 - break+accel indicator (1 iff available)
+42=1 - wheel [0 iff positive]
+43=1 - wheel [0 iff positive]
+44=0 - wheel [1 iff positive]
+45=0
+46=0
+47=0
+48=1 - wheel [bit7]
+49=0 - break [bit7] (assumed, never changes)
+50=0 - accel [bit7] (assumed, never changes)
+51=1 - wheel [bit6]
+52=0 - break [bit6] (assumed, never changes)
+53=0 - accel [bit6] (assumed, never changes)
+54=1 - wheel [bit5]
+55=0 - break [bit5] (0 if off)
+56=0 - accel [bit5] (0 if off)
+57=1 - wheel [bit4]
+58=0 - break [bit4] (1 if off)
+59=0 - accel [bit4] (1 if off)
+60=1 - wheel [bit3]
+61=0 - break [bit3] (1 if off)
+62=0 - accel [bit3] (1 if off)
+63=1 - wheel [bit2]
+64=0 - break [bit2] (1 if off)
+65=0 - accel [bit2] (1 if off)
+66=1 - wheel [bit1]
+67=1 - break [bit1] (1 if off)
+68=1 - accel [bit1] (1 if off)
+69=0 - wheel [bit0]
+70=0 - break [bit0] (1 if off)
+71=0 - accel [bit0] (1 if off)
+
+---------- A5 03 ----------
+00=0
+01=1 - power and force on
+02=0
+03=1
+04=1
+05=0
+06=0
+07=1
+08=0
+09=0
+10=1
+11=0
+12=0
+13=1 - force on
+14=0
+15=1
+16=1 - power on
+17=0
+18=1
+19=1 - force on
+20=0
+21=0
+22=0
+23=0
+
+
+
+
+
+A502 - ack (al abrir el menu del act)
+A5 04 36 00 - disable force feedback
+A5 04 3e 00 - enable force feedback
+a5088001f0ffff00000000000000 - al abrir revolt
+a5088402f0ffff003f0000000000 - al abrir revolt
+a5088a03f1ffff00000000000000 - al abrir revolt

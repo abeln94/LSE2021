@@ -1,0 +1,91 @@
+A50D                         - main polling (returns buttons & angle info)
+A503                         - secondary polling (returns power info)
+
+A502                         - reset
+A5043600                     - disable force feedback (visually)
+A5043e00                     - enable force feedback (visually)
+
+A50A00010100                 - apply force feedback
+A50901                       - clear force feedback
+
+A5088201F4FFFF057E007E000000 - 20 Hz (high vibration)
+A5088401542C2C056500005A0096 - Bump (very low vibration)
+A50882015490900A7E0006960096 - Change road (high vibration)
+A5088801F1FFFF0065657E7E0000 - On ice (no notable effect)
+A5088701F1FFFF007E7E7E7E0900 - Hard turn (harder to turn)
+A50880010464640A65007E086500 - Side force (turns left)
+A5088001FCFFFF0A7E0000000000 - Pull right (turns right)
+A5088001F4FFFF0A7E0000000000 - Pull left (turns left)
+A5088A01F1FFFF007E197E7E0000 - Hard rg (no notable effect)
+A5088801F1FFFF007F7F4B4B0900 - Hard st (no notable effect)
+A508850154F4F40C65CE00000000 - Diesel (low vibration)
+A5088801F1FFFF007F7F7E7E0000 - Wheel off (no notable effect)
+A5088401F4E8E8027E0000000000 - Engine idle (very low vibration)
+A5088201542C2C117E007E00005E - Choppy road (high vibration)
+
+a5088001f0ffff00000000000000 - Revolt (no notable effect)
+a5088402f0ffff003f0000000000 - Revolt (small vibration)
+a5088a03f1ffff00000000000000 - Revolt (no notable effect)
+
+
+------------------------------------------
+
+
+A5 00
+	- nothing
+
+A5 01
+	- returns fixed data (id?)
+
+A5 02
+	- reset all
+
+A5 03
+	- power info (secondary polling)
+
+A5 04 -X--
+	- ?
+	- enable/disable force feedback commands
+	- X<8  disable
+	- X>=8 enable
+
+A5 05 XXXXXXXXXXXXXXXXXXXXXXXX
+	- ?
+
+A5 06 XX
+	- ?
+	- first X must be an even number, second a 0, otherwise error
+
+A5 07 XX
+	- ?
+	- if XX is an id, that effect is applied (but only some effects)
+
+A5 08 XX II XXXXXXXXXXXXXXXXXXXX
+	- Force feedback efect definition.
+	- CC is the type of
+	- II id of effect to apply
+
+A5 09 II
+	- Clear effect
+	- II id of effect to apply
+
+A5 0A X- II ZZZZ
+	- Apply effect
+	- II id of effect to apply
+	- X<8  apply
+	- X>=8 clear
+	- ZZZZ is the number of times to repeat (in little endian!)
+
+A5 0B XX
+	- ?
+	- no ack! (but something must be sent)
+
+A5 0C
+	- nothing
+
+A5 0D
+	- main polling command
+
+other
+	- nothing
+
