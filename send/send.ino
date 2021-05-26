@@ -45,30 +45,36 @@ void capture() {
   response[responseIndex++] = (data>>DATA3) & 1; //digitalRead(DATA3);
 }
 
-int communicate(String data, int waitfor){
+int communicate(String data, int waitfor){  
   responseIndex = 3; // 3 because of the falling fix
   for(int i = 0; i < data.length(); i+=2){
     SerialHw.write(str2b(data[i],data[i+1]));
   }
   if(waitfor == 1) waitfor = 1+3; // +3 because of the falling fix
 
-  int counter = 10000;
+  int counter = 32767;
   while((waitfor < 0 || responseIndex < waitfor) && counter > 0) counter--;
   return responseIndex - 3; // -3 because of the falling fix
 }
 
-// ---------- main ----------
+// ---------- loop ----------
+
+byte enable_mainPoll = 1;
+byte enable_secondPoll = 0;
+byte enable_feedback = 0;
+byte enable_debug = 0;
 
 void loop() {
   digitalWrite(LED, LOW);
 
   
-  mainCommand();
-  //secondaryCommand();
+  if(enable_mainPoll) mainPoll();
+  if(enable_secondPoll) secondPoll();
   
 
-  feedback();
-  debug();
+  if(enable_feedback) feedback();
+  
+  if(enable_debug) debug();
 
 
   commands();
@@ -79,7 +85,7 @@ void loop() {
   delay(delayTime);
 }
 
-// ---------- commands ----------
+// ---------- main polling ----------
 
 // button assignment
 #define BUTTONS 17
@@ -103,8 +109,11 @@ byte assign[BUTTONS] = {
   24, // button Force on/off
 };
 
-void mainCommand(){
-  
+byte joined_axes = 1;
+
+void mainPoll(){
+
+  // ask
   communicate("a50d",24*3);
 
   // buttons
@@ -123,29 +132,37 @@ void mainCommand(){
 
   if(response[41]){
 
-    // break
-    int brk = 0;
-    for(int i=0;i<8;++i){
-      brk += response[49+i*3]<<(7-i);
-    }
-    brk=brk*8; // range: [0,63]->[0,511]
-  
-     // accel
+    // accel
     int acc = 0;
     for(int i=0;i<8;++i){
       acc += response[50+i*3]<<(7-i);
     }
     acc=acc*8; // range: [0,63]->[0,511]
 
-    Joystick.Y(acc-brk+512); // positive if accel, negative if break, range: [-511,511] -> [0,1023]
+    // break
+    int brk = 0;
+    for(int i=0;i<8;++i){
+      brk += response[49+i*3]<<(7-i);
+    }
+    brk=brk*8; // range: [0,63]->[0,511]
+
+    if(joined_axes){
+      Joystick.Y(acc-brk+512); // positive if accel, negative if break, range: [0,511]-[0,511] -> [0,1023]
+    }else{
+      Joystick.Y(acc+512); // range: [0,511] -> [512,1023]
+      Joystick.Z(brk+512); // range: [0,511] -> [512,1023]
+    }
     
   }else{
     Joystick.Y(512);
   }
 }
 
-void secondaryCommand(){
+// ---------- secondary polling ----------
 
+void secondPoll(){
+  
+  // ask  
   communicate("a503",24);
 
   // TODO: do something with this
@@ -154,17 +171,10 @@ void secondaryCommand(){
   
 }
 
-void forceCommand(String command){
-  communicate(command,1);
-  
-  communicate("A50A00010100",1);  
-}
-
-void forceClear(){
-  communicate("A50901",1); 
-}
+// ---------- any command ----------
 
 void anyCommand(String command){
+  if(command.length()%2==1) command+='0';
   Serial.printf("sent: %s\n",command.c_str());
   int received = communicate(command,-1);
   Serial.printf("received: %i\n",received);
@@ -173,7 +183,6 @@ void anyCommand(String command){
 
 // ---------- test feedback ----------
 
-byte enable_feedback = 0;
 byte active_effects[15] = {0};
 char dataString[30] = {0};
 
@@ -195,10 +204,11 @@ char* effectString[14] = {
 };
 char* enableString = "A50A00%02X0100";
 char* cancelString = "A509%02X";
+String resetString = "A502";
 
 void feedback(){
-  if(!enable_feedback) return;
-  
+
+  // test buttons
   for(int i=0;i<14;++i){
     if(active_effects[i] != response[27+i]){
       // changed effect
@@ -220,18 +230,15 @@ void feedback(){
   }
   if(response[25]){
     // master reset
-    communicate("A502",1);
+    communicate(resetString,1);
   }
 }
 
 // ---------- debug ----------
 
-byte enable_debug = 0;
 byte prevResponse[BITS];
 
-void debug(){
-  if(!enable_debug) return;
-  
+void debug(){  
   for(int i=0;i<BITS;++i){
     if(response[i] != prevResponse[i]){
       Serial.printf("%2i: %s\n",i,response[i]?"0->1":"1->0");
@@ -251,7 +258,11 @@ void printReceived(int amount){
   Serial.println();
 }
 
-// ---------- input ----------
+// ---------- command input ----------
+
+#define TOGGLE(name,var)                       \
+  var = !var;                                  \
+  Serial.printf(name ": %s\n", var?"ON":"OFF");
 
 String command = "";
 
@@ -264,22 +275,36 @@ void commands(){
         Serial.println("'-' to decrease polling time (faster)");
         Serial.println("'?' to toggle debug mode");
         Serial.println("'*' to toggle feedback test mode");
+        Serial.println("'z' to toggle joined axis mode");
+        Serial.println("'m' to toggle main polling");
+        Serial.println("'s' to toggle secondary polling");
         Serial.println("any hex-string and then enter to send that message via uart");
+        Serial.println("(any other is ignored)");
         break;
       case '+':
         delayTime += 10;
+        Serial.printf("Delay set to %i\n",delayTime);
         break;
       case '-':
         if(delayTime>=10) delayTime -= 10;
+        Serial.printf("Delay set to %i\n",delayTime);
         break;
       case '?':
-        enable_debug = !enable_debug;
-        Serial.printf("Debug mode: %s\n", enable_debug?"ON":"OFF");
+        TOGGLE("Debug mode", enable_debug);
         break;
       case '*':
-        enable_feedback = !enable_feedback;
-        Serial.printf("Feedback test mode: %s\n", enable_feedback?"ON":"OFF");
+        TOGGLE("Feedback test mode", enable_feedback);
         break;
+      case 'z':
+        TOGGLE("Joined axes", joined_axes);
+        break;
+      case 'm':
+        TOGGLE("Main polling command", enable_mainPoll);
+        break;
+      case 's':
+        TOGGLE("Secondary polling command", enable_secondPoll);
+        break;
+        
       case '\n':
         if(command.length()>0) anyCommand(command);
         command = "";
