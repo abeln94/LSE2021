@@ -11,15 +11,15 @@ A50901                       - clear force feedback
 A5088201F4FFFF057E007E000000 - 20 Hz (high vibration)
 A5088401542C2C056500005A0096 - Bump (very low vibration)
 A50882015490900A7E0006960096 - Change road (high vibration)
-A5088801F1FFFF0065657E7E0000 - On ice (no notable effect)
+A5088801F1FFFF0065657E7E0000 - On ice (harder to turn)
 A5088701F1FFFF007E7E7E7E0900 - Hard turn (harder to turn)
 A50880010464640A65007E086500 - Side force (turns left)
 A5088001FCFFFF0A7E0000000000 - Pull right (turns right)
 A5088001F4FFFF0A7E0000000000 - Pull left (turns left)
 A5088A01F1FFFF007E197E7E0000 - Hard rg (no notable effect)
-A5088801F1FFFF007F7F4B4B0900 - Hard st (no notable effect)
+A5088801F1FFFF007F7F4B4B0900 - Hard st (harder to turn)
 A508850154F4F40C65CE00000000 - Diesel (low vibration)
-A5088801F1FFFF007F7F7E7E0000 - Wheel off (no notable effect)
+A5088801F1FFFF007F7F7E7E0000 - Wheel off (harder to turn)
 A5088401F4E8E8027E0000000000 - Engine idle (very low vibration)
 A5088201542C2C117E007E00005E - Choppy road (high vibration)
 
@@ -50,19 +50,21 @@ A5 04 -X--
 	- X>=8 enable
 
 A5 05 XXXXXXXXXXXXXXXXXXXXXXXX
-	- ?
+	- same as A5 08?
 
 A5 06 XX
 	- ?
 	- first X must be an even number, second a 0, otherwise error
 
-A5 07 XX
+A5 07 II
 	- ?
-	- if XX is an id, that effect is applied (but only some effects)
+	- Apply effect II (but only some effects)
 
-A5 08 XX II XXXXXXXXXXXXXXXXXXXX
+A5 08 XZ II XXXXXXXXXXXXXXXXXXXX
 	- Force feedback efect definition.
-	- CC is the type of
+	- x==0 save and apply
+	- x==8 save but not apply
+	- Z is the type of effect
 	- II id of effect to apply
 
 A5 09 II
@@ -89,3 +91,5 @@ A5 0D
 other
 	- nothing
 
+
+Id: only 5 bits are used, the first 3 are unused (FF is the same as 1F)
