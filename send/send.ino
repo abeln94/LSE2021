@@ -260,9 +260,9 @@ void printReceived(int amount){
 
 // ---------- command input ----------
 
-#define TOGGLE(name,var)                       \
-  var = !var;                                  \
-  Serial.printf(name ": %s\n", var?"ON":"OFF");
+#define STATE(name,var) Serial.printf(name ": %s\n", var?"ON":"OFF")
+#define TOGGLE(name,var) var = !var; STATE(name,var)
+
 
 String command = "";
 
@@ -280,6 +280,13 @@ void commands(){
         Serial.println("'s' to toggle secondary polling");
         Serial.println("any hex-string and then enter to send that message via uart");
         Serial.println("(any other is ignored)");
+        STATE("> Debug mode",enable_debug);
+        STATE("> Feedback test mode",enable_feedback);
+        STATE("> Joined axes",joined_axes);
+        STATE("> Main polling command",enable_mainPoll);
+        STATE("> Secondary polling command",enable_secondPoll);
+        Serial.printf("> Delay time: %i\n",delayTime);
+        Serial.println();
         break;
       case '+':
         delayTime += 10;
@@ -294,6 +301,9 @@ void commands(){
         break;
       case '*':
         TOGGLE("Feedback test mode", enable_feedback);
+        if(enable_feedback && !enable_mainPoll){
+          TOGGLE("AUTO: Main polling command", enable_mainPoll);
+        }
         break;
       case 'z':
         TOGGLE("Joined axes", joined_axes);
