@@ -156,6 +156,19 @@ void mainPoll(){
   }else{
     Joystick.Y(512);
   }
+
+  // enable force mode: Set + Force
+  if(!enable_feedback && response[26] && response[24]){
+    enable_feedback = true;
+    Serial.println("Enabled force feedback mode via hotkeys");
+  }
+
+  // disable force mode: Set + O
+  if(enable_feedback && response[26] && response[25]){
+    enable_feedback = false;
+    Serial.println("Disabled force feedback mode via hotkeys");
+  }
+  
 }
 
 // ---------- secondary polling ----------
@@ -187,20 +200,20 @@ byte active_effects[15] = {0};
 char dataString[30] = {0};
 
 char* effectString[14] = {
-  "A50882%02XF4FFFF057E007E000000",
-  "A50884%02X542C2C056500005A0096",
-  "A50882%02X5490900A7E0006960096",
-  "A50888%02XF1FFFF0065657E7E0000",
-  "A50887%02XF1FFFF007E7E7E7E0900",
-  "A50880%02X0464640A65007E086500",
-  "A50880%02XFCFFFF0A7E0000000000",
-  "A50880%02XF4FFFF0A7E0000000000",
-  "A5088A%02XF1FFFF007E197E7E0000",
-  "A50888%02XF1FFFF007F7F4B4B0900",
-  "A50885%02X54F4F40C65CE00000000",
-  "A50888%02XF1FFFF007F7F7E7E0000",
-  "A50884%02XF4E8E8027E0000000000",
-  "A50882%02X542C2C117E007E00005E"
+  "A50887%02XF1FFFF007E7E7E7E0900", // Hard turn (harder to turn)       // button E
+  "A50880%02X0464640A65007E086500", // Side force (turns left)          // button F
+  "A50885%02X54F4F40C65CE00000000", // Diesel (low vibration)           // pad left
+  "A50880%02XFCFFFF0A7E0000000000", // Pull right (turns right)         // button G
+  "A50880%02XF4FFFF0A7E0000000000", // Pull left (turns left)           // button H
+  "A50888%02XF1FFFF007F7F7E7E0000", // Wheel off (harder to turn)       // pad right
+  "A50882%02XF4FFFF057E007E000000", // 20 Hz (high vibration)           // button A
+  "A50884%02X542C2C056500005A0096", // Bump (very low vibration)        // button B
+  "A50882%02X542C2C117E007E00005E", // Choppy road (high vibration)     // trigger left
+  "A50882%02X5490900A7E0006960096", // Change road (high vibration)     // button C
+  "A50888%02XF1FFFF0065657E7E0000", // On ice (harder to turn)          // button D
+  "A50884%02XF4E8E8027E0000000000", // Engine idle (very low vibration) // trigger right
+  "A5088A%02XF1FFFF007E197E7E0000", // Hard rg (no notable effect)      // pad up
+  "A50888%02XF1FFFF007F7F4B4B0900"  // Hard st (harder to turn)         // pad down
 };
 char* enableString = "A50A00%02X0100";
 char* cancelString = "A509%02X";
@@ -274,7 +287,7 @@ void commands(){
         Serial.println("'+' to increase polling time (slower)");
         Serial.println("'-' to decrease polling time (faster)");
         Serial.println("'?' to toggle debug mode");
-        Serial.println("'*' to toggle feedback test mode");
+        Serial.println("'*' to toggle feedback test mode [You can also press Set+Force to enable or Set+O to disable]");
         Serial.println("'z' to toggle joined axis mode");
         Serial.println("'m' to toggle main polling");
         Serial.println("'s' to toggle secondary polling");
