@@ -1,30 +1,29 @@
 1: 5v
-2: pattern
+2: Btn1: Bit 1 of response
 3: 0
 4: gnd
 6: 0
-7: pattern
+7: Btn2: Bit 2 of response
 8: 5v
 9: 5v
-10: pattern
+10: Btn3: Clock of response
 11: 0
-12: pattern
+12: MidiTXD: Send commands from computer to wheel
 13: 0
-14: pattern
-15: 1º
-
-31250 baud rate (MIDI!)
+14: Btn4: Bit 3 of response
+15: MidiRXD: 0
 
 
-A5 0D - A5 0D - A5 03 - A5 0D - . A5 0D - ... A5 0D - 
+MidiTXD: 31250 baud rate (MIDI protocol!)
 
 
-40001065000004301111117
-
-A: 1043
-B: 2043
-C: 0143
-D: 2043
+Wheel commands:
+Press & hold Set until it blinks. Then press:
+A: unknown
+C: Toggle default force
+Pad-Up: High default force
+Pad-Left or Pad-Right: Medium default force
+Pad-Down: Low default force 
 
 
 

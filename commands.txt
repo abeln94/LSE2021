@@ -1,11 +1,11 @@
-Known:
+Seen:
 
 A50D                         - main polling (returns buttons & angle info)
 A503                         - secondary polling (returns power info)
 
 A502                         - reset
-A5043600                     - disable force feedback (visually)
-A5043e00                     - enable force feedback (visually)
+A5043600                     - disable force feedback
+A5043e00                     - enable force feedback
 
 A50A00010100                 - apply force feedback
 A50901                       - clear force feedback
@@ -31,7 +31,7 @@ a5088a03f1ffff00000000000000 - Revolt (no notable effect)
 
 
 ------------------------------------------
-Found:
+Found by testing:
 
 
 A5 00
