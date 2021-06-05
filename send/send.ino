@@ -63,6 +63,7 @@ byte enable_mainPoll = 1;
 byte enable_secondPoll = 0;
 byte enable_feedback = 0;
 byte enable_debug = 0;
+byte enable_mousekey = 0;
 
 void loop() {
   digitalWrite(LED, LOW);
@@ -73,6 +74,7 @@ void loop() {
   
 
   if(enable_feedback) feedback();
+  if(enable_mousekey) mousekey();
   
   if(enable_debug) debug();
 
@@ -111,6 +113,8 @@ byte assign[BUTTONS] = {
 
 byte joined_axes = 1;
 
+#define RESPONSE2INT(variable, index) int variable = 0; for(int i=0;i<8;++i) variable += response[index+i*3]<<(7-i)
+
 void mainPoll(){
 
   // ask
@@ -122,10 +126,7 @@ void mainPoll(){
   }
 
   // wheel
-  int wheel = 0;
-  for(int i=0;i<8;++i){
-    wheel += response[48+i*3]<<(7-i);
-  }
+  RESPONSE2INT(wheel,48);
   if(response[42]) wheel = -(255-wheel);
   wheel = (wheel*2)+512; // range: [-256,256] -> [0,1023]
   Joystick.X(wheel);
@@ -133,17 +134,11 @@ void mainPoll(){
   if(response[41]){
 
     // accel
-    int acc = 0;
-    for(int i=0;i<8;++i){
-      acc += response[50+i*3]<<(7-i);
-    }
+    RESPONSE2INT(acc, 50);
     acc=acc*8; // range: [0,63]->[0,511]
 
     // break
-    int brk = 0;
-    for(int i=0;i<8;++i){
-      brk += response[49+i*3]<<(7-i);
-    }
+    RESPONSE2INT(brk,49);
     brk=brk*8; // range: [0,63]->[0,511]
 
     if(joined_axes){
@@ -168,7 +163,16 @@ void mainPoll(){
     enable_feedback = false;
     Serial.println("Disabled force feedback mode via hotkeys");
   }
-  
+
+  // enable mousekey: Set + triggleft
+  if(!enable_mousekey && response[26] && response[35]){
+    enable_mousekey = true;
+    Serial.println("Enabled mouse+keyboard mode via hotkeys");
+  }
+  if(enable_mousekey && response[26] && response[38]){
+    enable_mousekey = false;
+    Serial.println("Disabled mouse+keyboard mode via hotkeys");
+  }
 }
 
 // ---------- secondary polling ----------
@@ -247,6 +251,41 @@ void feedback(){
   }
 }
 
+// mouse + keyboard usage
+
+#define SETBTN(index,btn) if(response[index]) Keyboard.press(btn); else Keyboard.release(btn)
+
+void mousekey(){
+  // arrows
+  SETBTN(29,KEY_LEFT);
+  SETBTN(40,KEY_DOWN);
+  SETBTN(32,KEY_RIGHT);
+  SETBTN(39,KEY_UP);
+
+  // other
+  SETBTN(33,KEY_ENTER);
+  SETBTN(34,KEY_ESC);
+  SETBTN(36,KEY_SPACE);
+  SETBTN(37,KEY_BACKSPACE);
+
+  // modifiers
+  SETBTN(27,MODIFIERKEY_CTRL);
+  SETBTN(28,MODIFIERKEY_SHIFT);
+
+  // special
+  SETBTN(25,MODIFIERKEY_GUI);
+
+  // click
+  Mouse.set_buttons(response[35],0,response[38]);
+
+  // move/scroll
+  RESPONSE2INT(wheel,48);
+  if(response[42]) wheel = -(255-wheel);
+  wheel /= 16;
+  Mouse.move(wheel*!response[31]*!response[30],-wheel*response[31]);
+  Mouse.scroll(wheel*response[30]);
+}
+
 // ---------- debug ----------
 
 byte prevResponse[BITS];
@@ -289,6 +328,7 @@ void commands(){
         Serial.println("'?' to toggle debug mode");
         Serial.println("'*' to toggle feedback test mode [You can also press Set+Force to enable or Set+O to disable]");
         Serial.println("'z' to toggle joined axis mode");
+        Serial.println("'k' to toggle mose+keyboard mode [You can also press Set+RightTrigger to enable or Set+LeftTrigger to disable]");
         Serial.println("'m' to toggle main polling");
         Serial.println("'s' to toggle secondary polling");
         Serial.println("any hex-string and then enter to send that message via uart");
@@ -298,6 +338,7 @@ void commands(){
         STATE("> Joined axes",joined_axes);
         STATE("> Main polling command",enable_mainPoll);
         STATE("> Secondary polling command",enable_secondPoll);
+        STATE("> Mouse+Keyboard mode",enable_mousekey);
         Serial.printf("> Delay time: %i\n",delayTime);
         Serial.println();
         break;
@@ -326,6 +367,12 @@ void commands(){
         break;
       case 's':
         TOGGLE("Secondary polling command", enable_secondPoll);
+        break;
+      case 'k':
+        TOGGLE("Mouse+keyboard mode", enable_mousekey);
+        if(enable_mousekey && !enable_mainPoll){
+          TOGGLE("AUTO: Main polling command", enable_mainPoll);
+        }
         break;
         
       case '\n':
