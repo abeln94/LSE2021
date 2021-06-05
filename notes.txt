@@ -1,19 +1,19 @@
 1: 5v
-2: patron
+2: pattern
 3: 0
 4: gnd
 6: 0
-7: patron
+7: pattern
 8: 5v
 9: 5v
-10: patron
+10: pattern
 11: 0
-12: patron
+12: pattern
 13: 0
-14: patron
+14: pattern
 15: 1º
 
-31250 baudios
+31250 baud rate (MIDI!)
 
 
 A5 0D - A5 0D - A5 03 - A5 0D - . A5 0D - ... A5 0D - 
@@ -29,6 +29,7 @@ D: 2043
 
 
 bits: (b1,b2,b4)
+
 
 ---------- A5 0D ----------
 00=0
@@ -104,6 +105,9 @@ bits: (b1,b2,b4)
 70=0 - break [bit0] (1 if off)
 71=0 - accel [bit0] (1 if off)
 
+
+
+
 ---------- A5 03 ----------
 00=0
 01=1 - power and force on
@@ -129,14 +133,3 @@ bits: (b1,b2,b4)
 21=0
 22=0
 23=0
-
-
-
-
-
-A502 - ack (al abrir el menu del act)
-A5 04 36 00 - disable force feedback
-A5 04 3e 00 - enable force feedback
-a5088001f0ffff00000000000000 - al abrir revolt
-a5088402f0ffff003f0000000000 - al abrir revolt
-a5088a03f1ffff00000000000000 - al abrir revolt

@@ -1,3 +1,5 @@
+Known:
+
 A50D                         - main polling (returns buttons & angle info)
 A503                         - secondary polling (returns power info)
 
@@ -29,6 +31,7 @@ a5088a03f1ffff00000000000000 - Revolt (no notable effect)
 
 
 ------------------------------------------
+Found:
 
 
 A5 00
@@ -58,24 +61,24 @@ A5 06 XX
 
 A5 07 II
 	- ?
-	- Apply effect II (but only some effects)
+	- Run effect II (but only some effects)
 
 A5 08 XZ II XXXXXXXXXXXXXXXXXXXX
 	- Force feedback efect definition.
-	- x==0 save and apply
-	- x==8 save but not apply
+	- x==0 save and run
+	- x==8 save but don't run
 	- Z is the type of effect
-	- II id of effect to apply
+	- II id of effect
 
 A5 09 II
 	- Clear effect
-	- II id of effect to apply
+	- II id of effect to clear
 
 A5 0A X- II ZZZZ
-	- Apply effect
-	- II id of effect to apply
-	- X<8  apply
-	- X>=8 clear
+	- Run & clear effect
+	- II id of effect
+	- X<8  run
+	- X>=8 stop and clear
 	- ZZZZ is the number of times to repeat (in little endian!)
 
 A5 0B XX
