@@ -1,6 +1,6 @@
 # V4 Interact force feedback wheel HID adapter (SV-283)
 
-This proyect contains all the files used in the making of a teensy (arduino) HID adapter to use a windows 95 wheel joystick on modern computers via USB.
+This proyect contains all the files used in the making of a teensy 2.0 (arduino) HID adapter to use a windows 95 wheel joystick on modern computers via USB.
 
 ## Summary
 
@@ -94,6 +94,7 @@ A working adapter was developed to be able to use the wheel as a joystick, but t
 ## Resources
 
 The following links were bookmarked due to its importance (even if they were not used).
+- https://www.pjrc.com/store/teensy.html
 - https://github.com/tloimu/adapt-ffb-joy
 - https://github.com/YukMingLaw/ArduinoJoystickWithFFBLibrary
 - https://forum.pjrc.com/threads/33246-USB-Joystick-Rumble-Force-Feedback-on-Teensy-3-1
