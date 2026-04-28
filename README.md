@@ -61,6 +61,45 @@ The connections between the gameport and the teensy pinout are:
 - Gameport pin 14 to teensy B2: one of the data input. By editing the source code can be changed to almost any other pin, but preferably in the same PIN block (letter) as the other data, for simultaneous read.
 
 
+> [!Note]
+> [NonaSuomy suggestions](https://github.com/abeln94/LSE2021/discussions/3#discussioncomment-16717557):
+> 
+> - I would add a 5V and Ground example. I used gameport pin 1 for 5V and gameport pin 4 for common ground.
+> 
+> <details><summary>Gameport pinout for curious folks</summary>
+>
+> ### InterAct V4 Force Feedback Integrated Pinout Mapping
+>
+> | DA-15 Pin | Signal Name | Teensy 2.0 Pin | AVR Port/Pin | Software Logic / Register Bit |
+> | :--- | :--- | :--- | :--- | :--- |
+> | **1** | **+5V** | **VCC** | — | Main power for wheel electronics |
+> | **2** | **Btn1 (Data)** | **Pin 1** | **B1** | `(data >> 1) & 1` (Port B Bit 1) |
+> | **3** | **n/c** | — | — | Not used (Analog X1 in standard) |
+> | **4** | **GND** | **GND** | — | Common ground |
+> | **5** | **GND** | **GND** | — | Common ground |
+> | **6** | **n/c** | — | — | Not used (Analog Y1 in standard) |
+> | **7** | **Btn2 (Data)** | **Pin 2** | **B2** | `(data >> 2) & 1` (Port B Bit 2) |
+> | **8** | **+5V** | **VCC** | — | Logic power output |
+> | **9** | **+5V** | **VCC** | — | Logic power output |
+> | **10** | **Btn3 (Clock)** | **Pin 5** | **D5** | **Interrupt Trigger** (`CLK_PIN`) |
+> | **11** | **n/c** | — | — | Not used (Analog X2 in standard) |
+> | **12** | **MidiTXD** | **Pin 8** | **D3** | `Serial1` TX (Data from Wheel to PC) |
+> | **13** | **n/c** | — | — | Not used (Analog Y2 in standard) |
+> | **14** | **Btn4 (Data)** | **Pin 0** | **B0** | `(data >> 0) & 1` (Port B Bit 0) |
+> | **15** | **MidiRXD** | **Pin 7** | **D2** | `Serial1` RX (Commands from PC to Wheel) |
+> </details>
+>
+> - The default mode without changing anything is 3 devices
+> 
+> - Flash process example:
+> ```bash
+> sudo pacman -Sy teensy_loader_cli
+> teensy_loader_cli --mcu=teensy2 -w -v send.ino.hex
+> ```
+>
+> For connection examples, please check original message: https://github.com/abeln94/LSE2021/discussions/3#discussioncomment-16717557
+
+
 The adapter should be ready to use (either if the wheel is connected or not) and can be configured via the serial port (you can send command via letters, send 'h' for a list of them).
 
 Some features are:
